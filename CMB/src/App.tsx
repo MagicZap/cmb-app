@@ -402,8 +402,10 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
               </th>
               <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Plano</th>
               <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Dia Agendou</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">
-                Conferido
+<th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Retorno</th>
+<th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">
+  Conferido
+</th>
               </th>
             </tr>
           </thead>
