@@ -370,10 +370,11 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                   <SortIcon column="nome" />
                 </div>
               </th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Telefone</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">CPF</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data Nasc</th>
-              <th 
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Dia Agendou</th>
+<th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Retorno</th>
+<th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">
+  Conferido
+</th>
                 className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
                 onClick={() => onSort("especialidade")}
               >
