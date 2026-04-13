@@ -422,7 +422,10 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                 </td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.especialidade}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.medico}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600">{app.convenio}</td>
+                <td className={`px-3 py-2.5 text-xs font-medium ${app.convenio?.toLowerCase() === 'particular' ? 'text-green-600 bg-green-50' : 'text-slate-600'}`}>
+  {app.convenio?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}
+  {app.convenio}
+</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.plano}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">
                   {app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}
