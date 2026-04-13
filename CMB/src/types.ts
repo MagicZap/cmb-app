@@ -15,4 +15,5 @@ export interface Appointment {
   horario: string;
   conferido: boolean;
   aba: string;
+  retorno: string;
 }
