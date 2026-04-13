@@ -59,33 +59,32 @@ export default function App() {
   }, []);
 
   const handleToggleConferido = async (id: string, currentStatus: boolean) => {
-  const newStatus = !currentStatus;
-  
-  const inPendentes = pendentes.find(app => app.id === id);
-  const appointment = inPendentes || historico.find(app => app.id === id);
-  
-  if (!appointment) return;
+    const newStatus = !currentStatus;
+    
+    const inPendentes = pendentes.find(app => app.id === id);
+    const appointment = inPendentes || historico.find(app => app.id === id);
+    
+    if (!appointment) return;
 
-  // Atualização otimista na UI
-  if (inPendentes) {
-    setPendentes(prev => prev.filter(app => app.id !== id));
-    setHistorico(prev => [...prev, { ...appointment, conferido: newStatus, aba: "Historico" }]);
-  } else {
-    setHistorico(prev => prev.filter(app => app.id !== id));
-    setPendentes(prev => [...prev, { ...appointment, conferido: newStatus, aba: "Agendamentos" }]);
-  }
+    // Atualização otimista na UI
+    if (inPendentes) {
+      setPendentes(prev => prev.filter(app => app.id !== id));
+      setHistorico(prev => [...prev, { ...appointment, conferido: newStatus }]);
+    } else {
+      setHistorico(prev => prev.filter(app => app.id !== id));
+      setPendentes(prev => [...prev, { ...appointment, conferido: newStatus }]);
+    }
 
-  // Envia para o servidor com a aba correta
-  const success = await updateStatus(
-    appointment.realId || appointment.id.split("-")[0], 
-    newStatus, 
-    appointment.aba
-  );
-  
-  if (!success) {
-    loadData(true);
-  }
-};
+    // Envia para o servidor
+    const success = await updateStatus(
+      appointment.realId || appointment.id.split("-")[0], 
+      newStatus
+    );
+    
+    if (!success) {
+      loadData(true);
+    }
+  };
 
   const allAppointments = useMemo(() => [...pendentes, ...historico], [pendentes, historico]);
 
@@ -349,8 +348,17 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                 onClick={() => onSort("data")}
               >
                 <div className="flex items-center">
-                  {tab === "pending" ? "Data Agendada" : "Data"}
+                  Data Agendada
                   <SortIcon column="data" />
+                </div>
+              </th>
+              <th 
+                className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100 transition-colors"
+                onClick={() => onSort("horario")}
+              >
+                <div className="flex items-center">
+                  Horário
+                  <SortIcon column="horario" />
                 </div>
               </th>
               <th 
@@ -363,6 +371,8 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                 </div>
               </th>
               <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Telefone</th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">CPF</th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data Nasc</th>
               <th 
                 className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
                 onClick={() => onSort("especialidade")}
@@ -391,20 +401,9 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                 </div>
               </th>
               <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Plano</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">CPF</th>
-              <th 
-                className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100 transition-colors"
-                onClick={() => onSort("horario")}
-              >
-                <div className="flex items-center">
-                  Horário
-                  <SortIcon column="horario" />
-                </div>
-              </th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data Nasc</th>
               <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Dia Agendou</th>
               <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">
-                {tab === "pending" ? "Conferido" : "Garantia"}
+                Conferido
               </th>
             </tr>
           </thead>
@@ -412,19 +411,19 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
             {appointments.map((app, index) => (
               <tr key={`${app.id}-${index}`} className="hover:bg-slate-50/50 transition-colors">
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">
-                  {format(parseISO(app.dataAgendada), "dd/MM/yyyy")}
+                  {app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}
                 </td>
+                <td className="px-3 py-2.5 text-xs font-bold text-blue-600 whitespace-nowrap">{app.horario || "-"}</td>
                 <td className="px-3 py-2.5 text-xs font-bold text-slate-800 min-w-[150px]">{app.nome}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.telefone}</td>
+                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.cpf}</td>
+                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">
+                  {app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}
+                </td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.especialidade}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.medico}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.convenio}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.plano}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.cpf}</td>
-                <td className="px-3 py-2.5 text-xs font-bold text-blue-600 whitespace-nowrap">{app.horario}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">
-                  {app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}
-                </td>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">
                   {app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}
                 </td>
@@ -480,7 +479,7 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                       </span>
                       <span className="flex items-center gap-1 text-slate-500 text-xs font-medium bg-slate-100 px-2 py-1 rounded">
                         <Calendar className="w-3.5 h-3.5" />
-                        {format(parseISO(app.dataAgendada), "dd/MM/yyyy")}
+                        {app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}
                       </span>
                     </div>
 
