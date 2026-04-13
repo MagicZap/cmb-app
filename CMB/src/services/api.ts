@@ -1,6 +1,6 @@
 import { Appointment } from "../types";
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxgb7vn4XR7StiupfdhzVd37ju7Soaelu2fZeqbrmYGV-KxK9Z5YP98t6Rb9dsf1oi80Q/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziL8YrV89jR_-XqqSitUT-mv_MVkSl88FzygFRIQZ04HkJXAFZg0G0pf0QAredcXricQ/exec";
 
 console.log("SCRIPT_URL:", SCRIPT_URL);
 
