@@ -23,7 +23,7 @@ export default function App() {
   const [filterMedico, setFilterMedico] = useState("all");
   const [filterEspecialidade, setFilterEspecialidade] = useState("all");
   const [filterConvenio, setFilterConvenio] = useState("all");
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Appointment | "data"; direction: "asc" | "desc" } | null>(null);
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Appointment | "data"; direction: "asc" | "desc" } | null>({ key: "data", direction: "asc" });
 
   const handleSort = (key: keyof Appointment | "data") => {
     setSortConfig(prev => {
