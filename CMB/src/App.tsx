@@ -432,10 +432,17 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
   {app.plano?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}
   {app.plano}
 </td>
-                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">
-                  {app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}
-                </td>
-                <td className="px-3 py-2.5 text-sm text-center">
+               <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">
+  {app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}
+</td>
+<td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${
+  app.retorno === 'A realizar' ? 'text-blue-600 bg-blue-50' :
+  app.retorno === '≤ 15 dias' ? 'text-green-600 bg-green-50' :
+  app.retorno === '≤ 30 dias' ? 'text-yellow-600 bg-yellow-50' :
+  app.retorno === 'Fora' ? 'text-red-600 bg-red-50' :
+  'text-slate-400'
+}`}>{app.retorno || "-"}</td>
+<td className="px-3 py-2.5 text-sm text-center">
                   <div className="flex justify-center">
                     <Checkbox 
                       checked={app.conferido}
