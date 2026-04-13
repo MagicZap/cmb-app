@@ -1,0 +1,5 @@
+{
+  "name": "Gestão de Agendamentos Médicos",
+  "description": "Aplicativo para gestão de agendamentos médicos integrado com Google Sheets, com abas de pendentes e histórico.",
+  "requestFramePermissions": []
+}
