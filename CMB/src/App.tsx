@@ -187,31 +187,31 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
   if (appointments.length === 0) return <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300"><p className="text-slate-400 font-medium">{emptyMessage}</p></div>;
 
   const SortIcon = ({ column }: { column: keyof Appointment | "data" }) => {
-    if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-20" />;
-    return sortConfig.direction === "asc" ? <ArrowUp className="w-3 h-3 ml-1 text-blue-600" /> : <ArrowDown className="w-3 h-3 ml-1 text-blue-600" />;
-  };
+  if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30 text-slate-500" />;
+  return sortConfig.direction === "asc" ? <ArrowUp className="w-3 h-3 ml-1 text-slate-500" /> : <ArrowDown className="w-3 h-3 ml-1 text-slate-500" />;
+};
 
   if (viewMode === "list") {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
         <table className="w-full text-left border-collapse table-auto">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200">
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("data")}><div className="flex items-center">Data Agendada<SortIcon column="data" /></div></th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("horario")}><div className="flex items-center">Horário<SortIcon column="horario" /></div></th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("nome")}><div className="flex items-center">Nome<SortIcon column="nome" /></div></th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Telefone</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">CPF</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Data Nasc</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("especialidade")}><div className="flex items-center">Especialidade<SortIcon column="especialidade" /></div></th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("medico")}><div className="flex items-center">Médico<SortIcon column="medico" /></div></th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("convenio")}><div className="flex items-center">Convênio<SortIcon column="convenio" /></div></th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Plano</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Dia Agendou</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Retorno</th>
-              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">Conferido</th>
-            </tr>
-          </thead>
+  <tr className="bg-slate-50 border-b border-slate-200">
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("data")}><div className="flex items-center">Data Agendada<SortIcon column="data" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("horario")}><div className="flex items-center">Horário<SortIcon column="horario" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("nome")}><div className="flex items-center">Nome<SortIcon column="nome" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("telefone")}><div className="flex items-center">Telefone<SortIcon column="telefone" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("cpf")}><div className="flex items-center">CPF<SortIcon column="cpf" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("dataNasc")}><div className="flex items-center">Data Nasc<SortIcon column="dataNasc" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("especialidade")}><div className="flex items-center">Especialidade<SortIcon column="especialidade" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("medico")}><div className="flex items-center">Médico<SortIcon column="medico" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("convenio")}><div className="flex items-center">Convênio<SortIcon column="convenio" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("plano")}><div className="flex items-center">Plano<SortIcon column="plano" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("diaQueAgendou")}><div className="flex items-center">Dia Agendou<SortIcon column="diaQueAgendou" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("retorno")}><div className="flex items-center">Retorno<SortIcon column="retorno" /></div></th>
+    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">Conferido</th>
+  </tr>
+</thead>
           <tbody className="divide-y divide-slate-100">
             {appointments.map((app, index) => (
               <tr key={`${app.id}-${index}`} className="hover:bg-slate-50/50 transition-colors">
