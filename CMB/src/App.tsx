@@ -498,9 +498,17 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-slate-600 text-xs">
-                        <CreditCard className="w-4 h-4 text-slate-400 shrink-0" />
-                        <span className="truncate font-medium">{app.convenio} {app.plano && <span className="text-slate-400 font-normal">({app.plano})</span>}</span>
-                      </div>
+  <CreditCard className="w-4 h-4 text-slate-400 shrink-0" />
+  <span className="truncate font-medium">
+    {app.convenio} 
+    {app.plano && (
+      <span className={`font-normal ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600 font-medium' : 'text-slate-400'}`}>
+        {app.plano?.toLowerCase() === 'particular' && ' ⭐'}
+        ({app.plano})
+      </span>
+    )}
+  </span>
+</div>
                       <div className="flex items-center gap-2 text-slate-600 text-xs">
                         <User className="w-4 h-4 text-slate-400 shrink-0" />
                         <span className="font-medium">{app.telefone}</span>
