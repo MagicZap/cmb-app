@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, startTransition } from "react";
+import { useState, useEffect, useMemo, useRef, startTransition } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -22,11 +22,24 @@ export default function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [viewMode, setViewMode] = useState<"card" | "list">("list");
   const [activeTab, setActiveTab] = useState("pending");
+
+  // searchTerm: valor imediato do input (UI responsiva)
+  // debouncedSearch: valor que realmente dispara o filtro (300ms após parar de digitar)
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const [filterMedico, setFilterMedico] = useState("all");
   const [filterEspecialidade, setFilterEspecialidade] = useState("all");
   const [filterConvenio, setFilterConvenio] = useState("all");
   const [sortConfig, setSortConfig] = useState<{ key: keyof Appointment | "data"; direction: "asc" | "desc" } | null>({ key: "data", direction: "asc" });
+
+  // Debounce: só filtra 300ms após o usuário parar de digitar
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      startTransition(() => setDebouncedSearch(searchTerm));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const handleSort = (key: keyof Appointment | "data") => {
     setSortConfig(prev => {
@@ -83,8 +96,9 @@ export default function App() {
     convenios: Array.from(new Set(allAppointments.map(a => a.convenio))).filter(Boolean).sort(),
   }), [allAppointments]);
 
+  // Usa debouncedSearch (não searchTerm) para evitar re-render a cada tecla
   const filterList = (list: Appointment[]) => list.filter(app => {
-    if (searchTerm && !app.nome.toLowerCase().includes(searchTerm.toLowerCase()) && !app.cpf.includes(searchTerm)) return false;
+    if (debouncedSearch && !app.nome.toLowerCase().includes(debouncedSearch.toLowerCase()) && !app.cpf.includes(debouncedSearch)) return false;
     if (filterMedico !== "all" && app.medico !== filterMedico) return false;
     if (filterEspecialidade !== "all" && app.especialidade !== filterEspecialidade) return false;
     if (filterConvenio !== "all" && app.convenio !== filterConvenio) return false;
@@ -105,12 +119,20 @@ export default function App() {
 
   const pendingAppointments = useMemo(
     () => sortList(filterList(pendentes)),
-    [pendentes, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]
+    [pendentes, debouncedSearch, filterMedico, filterEspecialidade, filterConvenio, sortConfig]
   );
   const historyAppointments = useMemo(
     () => sortList(filterList(historico)),
-    [historico, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]
+    [historico, debouncedSearch, filterMedico, filterEspecialidade, filterConvenio, sortConfig]
   );
+
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setDebouncedSearch("");
+    setFilterMedico("all");
+    setFilterEspecialidade("all");
+    setFilterConvenio("all");
+  };
 
   if (!autenticado) return <Login onLogin={() => setAutenticado(true)} />;
 
@@ -146,7 +168,13 @@ export default function App() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input type="text" placeholder="Buscar por nome ou CPF..." className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input
+                type="text"
+                placeholder="Buscar por nome ou CPF..."
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
@@ -165,15 +193,19 @@ export default function App() {
                 {uniqueFilters.convenios.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               {(searchTerm || filterMedico !== "all" || filterEspecialidade !== "all" || filterConvenio !== "all") && (
-                <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(""); setFilterMedico("all"); setFilterEspecialidade("all"); setFilterConvenio("all"); }} className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3">Limpar Filtros</Button>
+                <Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3">Limpar Filtros</Button>
               )}
             </div>
           </div>
         </div>
         <Tabs defaultValue="pending" onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-200/50 p-1 rounded-xl max-w-4xl mx-auto">
-            <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Pendentes<Badge variant="secondary" className="ml-2 bg-red-100 text-red-700">{pendingAppointments.length}</Badge></TabsTrigger>
-            <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Histórico<Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600">{historyAppointments.length}</Badge></TabsTrigger>
+            <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">
+              Pendentes<Badge variant="secondary" className="ml-2 bg-red-100 text-red-700">{pendingAppointments.length}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">
+              Histórico<Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600">{historyAppointments.length}</Badge>
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="pending" className="mt-0">
             <AppointmentList
@@ -217,24 +249,34 @@ const PAGE_SIZE = 50;
 
 function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMode, sortConfig, onSort }: ListProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  // FIX: Reset visible count whenever the appointments list changes (tab switch, filter, etc.)
+  // Reset ao trocar de aba ou mudar filtro
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [appointments]);
 
   const paginated = appointments.slice(0, visibleCount);
   const hasMore = visibleCount < appointments.length;
-  const remaining = appointments.length - visibleCount;
 
-  // FIX: Load more in small batch, wrapped in startTransition so UI doesn't freeze
-  const handleLoadMore = () => {
-    startTransition(() => {
-      setVisibleCount(prev => Math.min(prev + PAGE_SIZE, appointments.length));
-    });
-  };
+  // Carrega mais automaticamente quando o sentinel entra na tela
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          startTransition(() => {
+            setVisibleCount(prev => Math.min(prev + PAGE_SIZE, appointments.length));
+          });
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasMore, appointments.length]);
 
-  // FIX: Disable animations when list is large to prevent UI freeze
   const useAnimation = paginated.length <= 50;
 
   if (loading) return (
@@ -315,32 +357,21 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
             })}
           </tbody>
         </table>
-        {hasMore && (
-          <div className="flex justify-center py-4 border-t border-slate-100">
-            <Button variant="outline" size="sm" onClick={handleLoadMore} className="text-slate-600 hover:bg-slate-50">
-              Carregar mais ({remaining} restantes)
-            </Button>
-          </div>
+        {hasMore && <div ref={sentinelRef} className="h-10" />}
+        {!hasMore && appointments.length > PAGE_SIZE && (
+          <div className="py-3 text-center text-xs text-slate-400">Todos os registros carregados</div>
         )}
       </div>
     );
   }
 
-  // Card view
-  // FIX: Skip AnimatePresence/motion entirely when list is large to avoid freeze
   if (!useAnimation) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
         {paginated.map((app, index) => (
           <AppointmentCard key={`${app.id}-${index}`} app={app} onToggle={onToggle} />
         ))}
-        {hasMore && (
-          <div className="flex justify-center py-4 col-span-full">
-            <Button variant="outline" size="sm" onClick={handleLoadMore} className="text-slate-600 hover:bg-slate-50">
-              Carregar mais ({remaining} restantes)
-            </Button>
-          </div>
-        )}
+        {hasMore && <div ref={sentinelRef} className="col-span-full h-10" />}
       </div>
     );
   }
@@ -361,18 +392,11 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
           </motion.div>
         ))}
       </AnimatePresence>
-      {hasMore && (
-        <div className="flex justify-center py-4 col-span-full">
-          <Button variant="outline" size="sm" onClick={handleLoadMore} className="text-slate-600 hover:bg-slate-50">
-            Carregar mais ({remaining} restantes)
-          </Button>
-        </div>
-      )}
+      {hasMore && <div ref={sentinelRef} className="col-span-full h-10" />}
     </div>
   );
 }
 
-// Extracted card component to avoid re-renders
 function AppointmentCard({ app, onToggle }: { app: Appointment; onToggle: (id: string, status: boolean) => void }) {
   const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
   const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
