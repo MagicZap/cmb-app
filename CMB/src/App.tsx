@@ -110,19 +110,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+      <header className="bg-white border-b-2 border-red-600 sticky top-0 z-10 shadow-sm">
         <div className="max-w-full mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg"><Calendar className="text-white w-6 h-6" /></div>
+            <div className="bg-red-600 p-2 rounded-lg"><Calendar className="text-white w-6 h-6" /></div>
             <h1 className="text-xl font-bold tracking-tight text-slate-800">Agendamentos</h1>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center bg-slate-100 p-1 rounded-lg">
-              <Button variant="ghost" size="sm" onClick={() => setViewMode("card")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "card" ? "bg-white shadow-sm" : "text-slate-500"}`}><LayoutGrid className="w-4 h-4 mr-2" />Cards</Button>
-              <Button variant="ghost" size="sm" onClick={() => setViewMode("list")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm" : "text-slate-500"}`}><List className="w-4 h-4 mr-2" />Lista</Button>
+              <Button variant="ghost" size="sm" onClick={() => setViewMode("card")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "card" ? "bg-white shadow-sm text-red-600" : "text-slate-500"}`}><LayoutGrid className="w-4 h-4 mr-2" />Cards</Button>
+              <Button variant="ghost" size="sm" onClick={() => setViewMode("list")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm text-red-600" : "text-slate-500"}`}><List className="w-4 h-4 mr-2" />Lista</Button>
             </div>
             <div className="flex items-center gap-2">
-              {isRefreshing && <RefreshCcw className="w-4 h-4 text-blue-500 animate-spin" />}
+              {isRefreshing && <RefreshCcw className="w-4 h-4 text-red-600 animate-spin" />}
               <span className="text-xs text-slate-400 font-medium uppercase tracking-wider hidden sm:inline">{isRefreshing ? "Atualizando..." : "Sincronizado"}</span>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function App() {
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input type="text" placeholder="Buscar por nome ou CPF..." className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+              <input type="text" placeholder="Buscar por nome ou CPF..." className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-500" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">
@@ -159,14 +159,14 @@ export default function App() {
                 {uniqueFilters.convenios.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               {(searchTerm || filterMedico !== "all" || filterEspecialidade !== "all" || filterConvenio !== "all") && (
-                <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(""); setFilterMedico("all"); setFilterEspecialidade("all"); setFilterConvenio("all"); }} className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-9 px-3">Limpar Filtros</Button>
+                <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(""); setFilterMedico("all"); setFilterEspecialidade("all"); setFilterConvenio("all"); }} className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3">Limpar Filtros</Button>
               )}
             </div>
           </div>
         </div>
         <Tabs defaultValue="pending" onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-8 bg-slate-200/50 p-1 rounded-xl max-w-4xl mx-auto">
-            <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Pendentes<Badge variant="secondary" className="ml-2 bg-blue-100 text-blue-700">{pendingAppointments.length}</Badge></TabsTrigger>
+            <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Pendentes<Badge variant="secondary" className="ml-2 bg-red-100 text-red-700">{pendingAppointments.length}</Badge></TabsTrigger>
             <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Histórico<Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600">{historyAppointments.length}</Badge></TabsTrigger>
           </TabsList>
           <TabsContent value="pending" className="mt-0"><AppointmentList appointments={pendingAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="Nenhum agendamento pendente." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} /></TabsContent>
@@ -220,22 +220,22 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
           <tbody className="divide-y divide-slate-100">
             {appointments.map((app, index) => {
               const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
-const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
+              const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
               return (
               <tr key={`${app.id}-${index}`} className={`transition-colors ${isRemarcar ? "bg-red-100 hover:bg-red-200" : isParticular ? "bg-green-100 hover:bg-green-200" : "hover:bg-slate-50/50"}`}>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</td>
-                <td className="px-3 py-2.5 text-xs font-bold text-blue-600 whitespace-nowrap">{app.horario || "-"}</td>
+                <td className="px-3 py-2.5 text-xs font-bold text-red-600 whitespace-nowrap">{app.horario || "-"}</td>
                 <td className="px-3 py-2.5 text-xs font-bold text-slate-800 min-w-[150px]">{app.nome}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.telefone}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.cpf}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.especialidade}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600">{app.medico}</td>
-                <td className={`px-3 py-2.5 text-xs font-medium ${app.convenio?.toLowerCase() === 'particular' ? 'text-green-600 bg-green-50' : 'text-slate-600'}`}>{app.convenio?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.convenio}</td>
+                <td className={`px-3 py-2.5 text-xs font-medium ${app.convenio?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.convenio?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.convenio}</td>
                 <td className={`px-3 py-2.5 text-xs font-medium ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.plano?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.plano}</td>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</td>
-                <td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${app.retorno === 'A realizar' ? 'text-blue-600' : app.retorno === '≤ 15 dias' ? 'text-green-600' : app.retorno === '≤ 30 dias' ? 'text-yellow-600' : app.retorno === 'Fora' ? 'text-red-600' : 'text-slate-400'}`}>{app.retorno || "-"}</td>
-                <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" /></div></td>
+                <td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${app.retorno === 'A realizar' ? 'text-red-600' : app.retorno === '≤ 15 dias' ? 'text-green-600' : app.retorno === '≤ 30 dias' ? 'text-yellow-600' : app.retorno === 'Fora' ? 'text-red-800' : 'text-slate-400'}`}>{app.retorno || "-"}</td>
+                <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" /></div></td>
               </tr>
               );
             })}
@@ -252,15 +252,15 @@ const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.
           <motion.div key={`${app.id}-${index}`} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
             <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR") ? "bg-red-100" : app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular" ? "bg-green-100" : ""}`}>
               <CardContent className="p-0 flex flex-1 items-stretch">
-                <div className={`w-1.5 shrink-0 ${app.conferido ? 'bg-slate-300' : 'bg-blue-500'}`} />
+                <div className={`w-1.5 shrink-0 ${app.conferido ? 'bg-slate-300' : 'bg-red-600'}`} />
                 <div className="p-5 flex-1 flex flex-col gap-4">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-slate-800 text-base leading-tight group-hover:text-blue-700 transition-colors line-clamp-2">{app.nome}</h3>
-                      <Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-5 w-5 rounded border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600 transition-all shrink-0 mt-0.5" />
+                      <h3 className="font-bold text-slate-800 text-base leading-tight group-hover:text-red-700 transition-colors line-clamp-2">{app.nome}</h3>
+                      <Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-5 w-5 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 transition-all shrink-0 mt-0.5" />
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="flex items-center gap-1 font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded text-xs"><Clock className="w-3.5 h-3.5" />{app.horario}</span>
+                      <span className="flex items-center gap-1 font-bold text-red-600 bg-red-50 px-2 py-1 rounded text-xs"><Clock className="w-3.5 h-3.5" />{app.horario}</span>
                       <span className="flex items-center gap-1 text-slate-500 text-xs font-medium bg-slate-100 px-2 py-1 rounded"><Calendar className="w-3.5 h-3.5" />{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</span>
                     </div>
                     <div className="space-y-2.5">
