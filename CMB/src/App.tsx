@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Calendar, Clock, User, CreditCard, Stethoscope, RefreshCcw, LayoutGrid, List, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 import Login from "./Login";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 export default function App() {
   const [autenticado, setAutenticado] = useState(false);
