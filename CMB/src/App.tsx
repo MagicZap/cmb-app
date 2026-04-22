@@ -250,7 +250,7 @@ const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.
       <AnimatePresence mode="popLayout">
         {appointments.map((app, index) => (
           <motion.div key={`${app.id}-${index}`} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
-            <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col">
+            <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR") ? "bg-red-100" : app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular" ? "bg-green-100" : ""}`}>
               <CardContent className="p-0 flex flex-1 items-stretch">
                 <div className={`w-1.5 shrink-0 ${app.conferido ? 'bg-slate-300' : 'bg-blue-500'}`} />
                 <div className="p-5 flex-1 flex flex-col gap-4">
