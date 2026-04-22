@@ -29,21 +29,18 @@ export default function Login({ onLogin }: LoginProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans">
-      {/* Background sutil igual ao app */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-100 via-slate-50 to-red-50/30 pointer-events-none" />
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center font-sans">
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="relative bg-white rounded-2xl border border-slate-200 shadow-sm w-full max-w-sm mx-4 overflow-hidden"
+        className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl w-full max-w-sm mx-4 overflow-hidden"
       >
-        {/* Barra azul no topo — igual ao indicador lateral dos cards */}
         <div className="h-1 w-full bg-red-600" />
 
         <div className="px-8 py-10 flex flex-col items-center gap-6">
-          {/* Logo + título */}
           <div className="flex flex-col items-center gap-3">
             <img
               src="https://centromedicoberrini.com.br/images/2022/logo.png"
@@ -61,7 +58,6 @@ export default function Login({ onLogin }: LoginProps) {
             </div>
           </div>
 
-          {/* Formulário */}
           <div className="w-full flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Usuário</label>
@@ -71,7 +67,7 @@ export default function Login({ onLogin }: LoginProps) {
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-700 focus:border-transparent transition-all"
               />
             </div>
 
@@ -83,7 +79,7 @@ export default function Login({ onLogin }: LoginProps) {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-700 focus:border-transparent transition-all"
               />
             </div>
 
@@ -103,7 +99,7 @@ export default function Login({ onLogin }: LoginProps) {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full mt-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-bold text-sm py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm"
+              className="w-full mt-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold text-sm py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm"
             >
               {loading ? (
                 <>
