@@ -109,8 +109,6 @@ export default function App() {
   if (!autenticado) return <Login onLogin={() => setAutenticado(true)} />;
 
   return (
-
-  return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="max-w-full mx-auto px-6 py-4 flex items-center justify-between">
