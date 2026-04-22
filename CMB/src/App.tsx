@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, startTransition } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -216,16 +216,23 @@ interface ListProps {
 const PAGE_SIZE = 50;
 
 function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMode, sortConfig, onSort }: ListProps) {
-  const [page, setPage] = useState(1);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-  // FIX: Reset page to 1 whenever the appointments list changes (e.g. tab switch, filter change)
-  // This prevents trying to render hundreds of items at once when switching tabs
+  // FIX: Reset visible count whenever the appointments list changes (tab switch, filter, etc.)
   useEffect(() => {
-    setPage(1);
+    setVisibleCount(PAGE_SIZE);
   }, [appointments]);
 
-  const paginated = appointments.slice(0, page * PAGE_SIZE);
-  const hasMore = paginated.length < appointments.length;
+  const paginated = appointments.slice(0, visibleCount);
+  const hasMore = visibleCount < appointments.length;
+  const remaining = appointments.length - visibleCount;
+
+  // FIX: Load more in small batch, wrapped in startTransition so UI doesn't freeze
+  const handleLoadMore = () => {
+    startTransition(() => {
+      setVisibleCount(prev => Math.min(prev + PAGE_SIZE, appointments.length));
+    });
+  };
 
   // FIX: Disable animations when list is large to prevent UI freeze
   const useAnimation = paginated.length <= 50;
@@ -310,8 +317,8 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
         </table>
         {hasMore && (
           <div className="flex justify-center py-4 border-t border-slate-100">
-            <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} className="text-slate-600 hover:bg-slate-50">
-              Carregar mais ({appointments.length - paginated.length} restantes)
+            <Button variant="outline" size="sm" onClick={handleLoadMore} className="text-slate-600 hover:bg-slate-50">
+              Carregar mais ({remaining} restantes)
             </Button>
           </div>
         )}
@@ -329,8 +336,8 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
         ))}
         {hasMore && (
           <div className="flex justify-center py-4 col-span-full">
-            <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} className="text-slate-600 hover:bg-slate-50">
-              Carregar mais ({appointments.length - paginated.length} restantes)
+            <Button variant="outline" size="sm" onClick={handleLoadMore} className="text-slate-600 hover:bg-slate-50">
+              Carregar mais ({remaining} restantes)
             </Button>
           </div>
         )}
@@ -356,8 +363,8 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
       </AnimatePresence>
       {hasMore && (
         <div className="flex justify-center py-4 col-span-full">
-          <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} className="text-slate-600 hover:bg-slate-50">
-            Carregar mais ({appointments.length - paginated.length} restantes)
+          <Button variant="outline" size="sm" onClick={handleLoadMore} className="text-slate-600 hover:bg-slate-50">
+            Carregar mais ({remaining} restantes)
           </Button>
         </div>
       )}
