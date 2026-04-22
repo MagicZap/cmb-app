@@ -15,7 +15,6 @@ import Login from "./Login";
 
 export default function App() {
   const [autenticado, setAutenticado] = useState(false);
-  if (!autenticado) return <Login onLogin={() => setAutenticado(true)} />;
   const [pendentes, setPendentes] = useState<Appointment[]>([]);
   const [historico, setHistorico] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,6 +105,10 @@ export default function App() {
 
   const pendingAppointments = useMemo(() => sortList(filterList(pendentes)), [pendentes, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]);
   const historyAppointments = useMemo(() => sortList(filterList(historico)), [historico, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]);
+
+  if (!autenticado) return <Login onLogin={() => setAutenticado(true)} />;
+
+  return (
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
