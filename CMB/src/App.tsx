@@ -307,8 +307,8 @@ function VirtualTable({ appointments, onToggle, sortConfig, onSort }: {
             <Colgroup />
             <tbody className="divide-y divide-slate-100">
               {visibleItems.map((app) => {
-                const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
-                const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
+                const isRemarcar = String(app.convenio ?? "").includes("REMARCAR / CANCELAR") || String(app.plano ?? "").includes("REMARCAR / CANCELAR");
+const isParticular = String(app.convenio ?? "").toLowerCase() === "particular" || String(app.plano ?? "").toLowerCase() === "particular";
                 return (
                   <tr key={app.id} style={{ height: ROW_HEIGHT }} className={`transition-colors ${isRemarcar ? "bg-red-100 hover:bg-red-200" : isParticular ? "bg-green-100 hover:bg-green-200" : "hover:bg-slate-50/50"}`}>
                     {/* ✅ CORREÇÃO 4 — formatarDataSeguro em todas as datas */}
