@@ -11,7 +11,11 @@ import { format, parseISO } from "date-fns";
 import { motion, AnimatePresence } from "motion/react";
 import { Calendar, Clock, User, CreditCard, Stethoscope, RefreshCcw, LayoutGrid, List, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
+import Login from "./Login";
+
 export default function App() {
+  const [autenticado, setAutenticado] = useState(false);
+  if (!autenticado) return <Login onLogin={() => setAutenticado(true)} />;
   const [pendentes, setPendentes] = useState<Appointment[]>([]);
   const [historico, setHistorico] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
