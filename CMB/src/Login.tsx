@@ -31,7 +31,7 @@ export default function Login({ onLogin }: LoginProps) {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans">
       {/* Background sutil igual ao app */}
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-100 via-slate-50 to-blue-50/30 pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-100 via-slate-50 to-red-50/30 pointer-events-none" />
 
       <motion.div
         initial={{ opacity: 0, y: 24 }}
@@ -40,7 +40,7 @@ export default function Login({ onLogin }: LoginProps) {
         className="relative bg-white rounded-2xl border border-slate-200 shadow-sm w-full max-w-sm mx-4 overflow-hidden"
       >
         {/* Barra azul no topo — igual ao indicador lateral dos cards */}
-        <div className="h-1 w-full bg-blue-600" />
+        <div className="h-1 w-full bg-red-600" />
 
         <div className="px-8 py-10 flex flex-col items-center gap-6">
           {/* Logo + título */}
@@ -52,7 +52,7 @@ export default function Login({ onLogin }: LoginProps) {
             />
             <div className="text-center">
               <div className="flex items-center gap-2 justify-center">
-                <div className="bg-blue-600 p-1.5 rounded-md">
+                <div className="bg-red-600 p-1.5 rounded-md">
                   <Calendar className="text-white w-4 h-4" />
                 </div>
                 <h1 className="text-lg font-bold tracking-tight text-slate-800">Agendamentos</h1>
@@ -71,7 +71,7 @@ export default function Login({ onLogin }: LoginProps) {
                 value={usuario}
                 onChange={(e) => setUsuario(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
               />
             </div>
 
@@ -83,7 +83,7 @@ export default function Login({ onLogin }: LoginProps) {
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
               />
             </div>
 
@@ -103,7 +103,7 @@ export default function Login({ onLogin }: LoginProps) {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full mt-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold text-sm py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm"
+              className="w-full mt-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-bold text-sm py-2.5 rounded-lg transition-all flex items-center justify-center gap-2 shadow-sm"
             >
               {loading ? (
                 <>
