@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,18 +23,24 @@ export default function App() {
   const [viewMode, setViewMode] = useState<"card" | "list">("list");
   const [activeTab, setActiveTab] = useState("pending");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filterMedico, setFilterMedico] = useState("all");
   const [filterEspecialidade, setFilterEspecialidade] = useState("all");
   const [filterConvenio, setFilterConvenio] = useState("all");
   const [sortConfig, setSortConfig] = useState<{ key: keyof Appointment | "data"; direction: "asc" | "desc" } | null>({ key: "data", direction: "asc" });
 
+  // Debounce 300ms — evita filtrar a cada tecla
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 300);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
   const handleSort = (key: keyof Appointment | "data") => {
-    setSortConfig(prev => {
-      if (prev?.key === key) {
-        return { key, direction: prev.direction === "asc" ? "desc" : "asc" };
-      }
-      return { key, direction: "asc" };
-    });
+    setSortConfig(prev =>
+      prev?.key === key
+        ? { key, direction: prev.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" }
+    );
   };
 
   const loadData = async (silent = false) => {
@@ -84,7 +90,7 @@ export default function App() {
   }), [allAppointments]);
 
   const filterList = (list: Appointment[]) => list.filter(app => {
-    if (searchTerm && !app.nome.toLowerCase().includes(searchTerm.toLowerCase()) && !app.cpf.includes(searchTerm)) return false;
+    if (debouncedSearch && !app.nome.toLowerCase().includes(debouncedSearch.toLowerCase()) && !app.cpf.includes(debouncedSearch)) return false;
     if (filterMedico !== "all" && app.medico !== filterMedico) return false;
     if (filterEspecialidade !== "all" && app.especialidade !== filterEspecialidade) return false;
     if (filterConvenio !== "all" && app.convenio !== filterConvenio) return false;
@@ -103,8 +109,14 @@ export default function App() {
     });
   };
 
-  const pendingAppointments = useMemo(() => sortList(filterList(pendentes)), [pendentes, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]);
-  const historyAppointments = useMemo(() => sortList(filterList(historico)), [historico, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]);
+  const pendingAppointments = useMemo(
+    () => sortList(filterList(pendentes)),
+    [pendentes, debouncedSearch, filterMedico, filterEspecialidade, filterConvenio, sortConfig]
+  );
+  const historyAppointments = useMemo(
+    () => sortList(filterList(historico)),
+    [historico, debouncedSearch, filterMedico, filterEspecialidade, filterConvenio, sortConfig]
+  );
 
   if (!autenticado) return <Login onLogin={() => setAutenticado(true)} />;
 
@@ -159,7 +171,7 @@ export default function App() {
                 {uniqueFilters.convenios.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
               {(searchTerm || filterMedico !== "all" || filterEspecialidade !== "all" || filterConvenio !== "all") && (
-                <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(""); setFilterMedico("all"); setFilterEspecialidade("all"); setFilterConvenio("all"); }} className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3">Limpar Filtros</Button>
+                <Button variant="ghost" size="sm" onClick={() => { setSearchTerm(""); setDebouncedSearch(""); setFilterMedico("all"); setFilterEspecialidade("all"); setFilterConvenio("all"); }} className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9 px-3">Limpar Filtros</Button>
               )}
             </div>
           </div>
@@ -169,8 +181,12 @@ export default function App() {
             <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Pendentes<Badge variant="secondary" className="ml-2 bg-red-100 text-red-700">{pendingAppointments.length}</Badge></TabsTrigger>
             <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Histórico<Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600">{historyAppointments.length}</Badge></TabsTrigger>
           </TabsList>
-          <TabsContent value="pending" className="mt-0"><AppointmentList appointments={pendingAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="Nenhum agendamento pendente." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} /></TabsContent>
-          <TabsContent value="history" className="mt-0"><AppointmentList appointments={historyAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="O histórico está vazio." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} /></TabsContent>
+          <TabsContent value="pending" className="mt-0">
+            <AppointmentList appointments={pendingAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="Nenhum agendamento pendente." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} />
+          </TabsContent>
+          <TabsContent value="history" className="mt-0">
+            <AppointmentList appointments={historyAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="O histórico está vazio." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
@@ -187,29 +203,45 @@ interface ListProps {
   onSort: (key: keyof Appointment | "data") => void;
 }
 
-const PAGE_SIZE = 50;
+const ROW_HEIGHT = 37;
+const OVERSCAN = 5;
 
-function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMode, sortConfig, onSort }: ListProps) {
-  const [page, setPage] = useState(1);
+// Virtualização manual — renderiza só as linhas visíveis na tela
+function VirtualTable({ appointments, onToggle, sortConfig, onSort }: {
+  appointments: Appointment[];
+  onToggle: (id: string, status: boolean) => void;
+  sortConfig: { key: keyof Appointment | "data"; direction: "asc" | "desc" } | null;
+  onSort: (key: keyof Appointment | "data") => void;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerHeight, setContainerHeight] = useState(600);
 
   useEffect(() => {
-    setPage(1);
-  }, [appointments]);
+    const el = containerRef.current;
+    if (!el) return;
+    setContainerHeight(el.clientHeight);
+    const handleScroll = () => setScrollTop(el.scrollTop);
+    el.addEventListener("scroll", handleScroll, { passive: true });
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  const paginated = appointments.slice(0, page * PAGE_SIZE);
-  const hasMore = paginated.length < appointments.length;
-
-  if (loading) return <div className="space-y-4">{[1,2,3,4].map(i => <Card key={i} className="border-none shadow-sm"><CardContent className="p-4 flex items-center justify-between"><div className="space-y-2 flex-1"><Skeleton className="h-5 w-1/3" /><Skeleton className="h-4 w-1/2" /></div><Skeleton className="h-6 w-6 rounded" /></CardContent></Card>)}</div>;
-  if (appointments.length === 0) return <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300"><p className="text-slate-400 font-medium">{emptyMessage}</p></div>;
+  const totalHeight = appointments.length * ROW_HEIGHT;
+  const startIndex = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
+  const visibleCount = Math.ceil(containerHeight / ROW_HEIGHT) + OVERSCAN * 2;
+  const endIndex = Math.min(appointments.length, startIndex + visibleCount);
+  const visibleItems = appointments.slice(startIndex, endIndex);
+  const offsetY = startIndex * ROW_HEIGHT;
 
   const SortIcon = ({ column }: { column: keyof Appointment | "data" }) => {
     if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30 text-slate-500" />;
     return sortConfig.direction === "asc" ? <ArrowUp className="w-3 h-3 ml-1 text-slate-500" /> : <ArrowDown className="w-3 h-3 ml-1 text-slate-500" />;
   };
 
-  if (viewMode === "list") {
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* Header fixo */}
+      <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse table-auto">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200">
@@ -228,45 +260,73 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
               <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">Conferido</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
-            {paginated.map((app, index) => {
-              const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
-              const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
-              return (
-                <tr key={`${app.id}-${index}`} className={`transition-colors ${isRemarcar ? "bg-red-100 hover:bg-red-200" : isParticular ? "bg-green-100 hover:bg-green-200" : "hover:bg-slate-50/50"}`}>
-                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-red-600 whitespace-nowrap">{app.horario || "-"}</td>
-                  <td className="px-3 py-2.5 text-xs font-bold text-slate-800 min-w-[150px]">{app.nome}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.telefone}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.cpf}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-600">{app.especialidade}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-600">{app.medico}</td>
-                  <td className={`px-3 py-2.5 text-xs font-medium ${app.convenio?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.convenio?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.convenio}</td>
-                  <td className={`px-3 py-2.5 text-xs font-medium ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.plano?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.plano}</td>
-                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</td>
-                  <td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${app.retorno === 'A realizar' ? 'text-red-600' : app.retorno === '≤ 15 dias' ? 'text-green-600' : app.retorno === '≤ 30 dias' ? 'text-yellow-600' : app.retorno === 'Fora' ? 'text-red-800' : 'text-slate-400'}`}>{app.retorno || "-"}</td>
-                  <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" /></div></td>
-                </tr>
-              );
-            })}
-          </tbody>
         </table>
-        {hasMore && (
-          <div className="flex justify-center py-4 border-t border-slate-100">
-            <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} className="text-slate-600 hover:bg-slate-50">
-              Carregar mais ({appointments.length - paginated.length} restantes)
-            </Button>
-          </div>
-        )}
       </div>
-    );
+      {/* Área de scroll virtualizada */}
+      <div ref={containerRef} className="overflow-auto" style={{ height: "calc(100vh - 320px)" }}>
+        <div style={{ height: totalHeight, position: "relative" }}>
+          <table className="w-full text-left border-collapse table-auto" style={{ position: "absolute", top: offsetY, width: "100%" }}>
+            <tbody className="divide-y divide-slate-100">
+              {visibleItems.map((app, i) => {
+                const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
+                const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
+                return (
+                  <tr key={app.id} style={{ height: ROW_HEIGHT }} className={`transition-colors ${isRemarcar ? "bg-red-100 hover:bg-red-200" : isParticular ? "bg-green-100 hover:bg-green-200" : "hover:bg-slate-50/50"}`}>
+                    <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</td>
+                    <td className="px-3 py-2.5 text-xs font-bold text-red-600 whitespace-nowrap">{app.horario || "-"}</td>
+                    <td className="px-3 py-2.5 text-xs font-bold text-slate-800 min-w-[150px]">{app.nome}</td>
+                    <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.telefone}</td>
+                    <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.cpf}</td>
+                    <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}</td>
+                    <td className="px-3 py-2.5 text-xs text-slate-600">{app.especialidade}</td>
+                    <td className="px-3 py-2.5 text-xs text-slate-600">{app.medico}</td>
+                    <td className={`px-3 py-2.5 text-xs font-medium ${app.convenio?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.convenio?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.convenio}</td>
+                    <td className={`px-3 py-2.5 text-xs font-medium ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.plano?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.plano}</td>
+                    <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</td>
+                    <td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${app.retorno === 'A realizar' ? 'text-red-600' : app.retorno === '≤ 15 dias' ? 'text-green-600' : app.retorno === '≤ 30 dias' ? 'text-yellow-600' : app.retorno === 'Fora' ? 'text-red-800' : 'text-slate-400'}`}>{app.retorno || "-"}</td>
+                    <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" /></div></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div className="px-4 py-2 text-xs text-slate-400 border-t border-slate-100">
+        {appointments.length} registros
+      </div>
+    </div>
+  );
+}
+
+function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMode, sortConfig, onSort }: ListProps) {
+  if (loading) return (
+    <div className="space-y-4">
+      {[1,2,3,4].map(i => (
+        <Card key={i} className="border-none shadow-sm">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-2 flex-1"><Skeleton className="h-5 w-1/3" /><Skeleton className="h-4 w-1/2" /></div>
+            <Skeleton className="h-6 w-6 rounded" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  if (appointments.length === 0) return (
+    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+      <p className="text-slate-400 font-medium">{emptyMessage}</p>
+    </div>
+  );
+
+  if (viewMode === "list") {
+    return <VirtualTable appointments={appointments} onToggle={onToggle} sortConfig={sortConfig} onSort={onSort} />;
   }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
       <AnimatePresence mode="popLayout">
-        {paginated.map((app, index) => (
+        {appointments.slice(0, 100).map((app, index) => (
           <motion.div key={`${app.id}-${index}`} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
             <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR") ? "bg-red-100" : app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular" ? "bg-green-100" : ""}`}>
               <CardContent className="p-0 flex flex-1 items-stretch">
@@ -300,13 +360,6 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
           </motion.div>
         ))}
       </AnimatePresence>
-      {hasMore && (
-        <div className="flex justify-center py-4 col-span-full">
-          <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} className="text-slate-600 hover:bg-slate-50">
-            Carregar mais ({appointments.length - paginated.length} restantes)
-          </Button>
-        </div>
-      )}
     </div>
   );
 }
