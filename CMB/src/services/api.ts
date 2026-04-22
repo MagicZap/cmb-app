@@ -4,7 +4,6 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbziL8YrV89jR_-XqqSit
 
 console.log("SCRIPT_URL:", SCRIPT_URL);
 
-// Mantido idêntico ao original
 const formatarLista = (lista: any[]) => {
   return lista.map((item: any, index: number) => {
     const baseId = item.id || item.ID || index;
@@ -30,13 +29,9 @@ const formatarLista = (lista: any[]) => {
       horario: (() => {
         const h = item.horario;
         if (!h) return "";
-        if (typeof h === "string" && /^\d{1,2}:\d{2}/.test(h)) {
-          return h.substring(0, 5);
-        }
+        if (typeof h === "string" && /^\d{1,2}:\d{2}/.test(h)) return h.substring(0, 5);
         const date = new Date(h);
-        if (!isNaN(date.getTime())) {
-          return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-        }
+        if (!isNaN(date.getTime())) return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
         return String(h);
       })(),
       conferido: item.conferido === true || item.conferido === "true" || item.status === "Conferido",
@@ -46,7 +41,6 @@ const formatarLista = (lista: any[]) => {
   });
 };
 
-// NOVO: busca uma página específica de uma aba
 export async function fetchPage(
   aba: "pendentes" | "historico",
   pagina: number = 1,
@@ -60,17 +54,19 @@ export async function fetchPage(
     ...(busca ? { busca } : {}),
   });
 
+  // redirect: "follow" garante que os parâmetros não se percam no redirecionamento do Google
   const response = await fetch(`${SCRIPT_URL}?${params}`, {
     method: "GET",
-    headers: { "Accept": "application/json" },
+    redirect: "follow",
   });
 
   if (!response.ok) {
-    const errorText = await response.text().catch(() => "Sem detalhes");
-    throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
+    throw new Error(`Erro HTTP ${response.status}`);
   }
 
   const data = await response.json();
+
+  console.log(`[fetchPage] aba=${aba} pagina=${pagina} total=${data.total} registros=${data.registros?.length}`);
 
   return {
     registros: formatarLista(data.registros || []),
@@ -79,51 +75,15 @@ export async function fetchPage(
   };
 }
 
-// Mantido idêntico ao original — usado na carga inicial
-export async function fetchData(): Promise<{ pendentes: Appointment[], historico: Appointment[] }> {
-  try {
-    const response = await fetch(SCRIPT_URL, {
-      method: "GET",
-      headers: { "Accept": "application/json" },
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => "Sem detalhes");
-      throw new Error(`Erro HTTP ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-
-    const pendentes = formatarLista(data.pendentes || []);
-    const historico = formatarLista(data.historico || []);
-
-    console.log("PENDENTES:", pendentes.length);
-    console.log("HISTORICO:", historico.length);
-
-    return { pendentes, historico };
-  } catch (error) {
-    console.error("Erro ao buscar dados:", error);
-    return { pendentes: [], historico: [] };
-  }
-}
-
-// Mantido idêntico ao original
 export async function updateStatus(id: string, status: boolean, aba: string = "Agendamentos"): Promise<boolean> {
-  console.log("=== UPDATE STATUS ===");
-  console.log("ID:", id, "| Status:", status, "| Aba:", aba);
-
+  console.log("=== UPDATE STATUS ===", "ID:", id, "Status:", status);
   try {
     await fetch(SCRIPT_URL, {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: Number(id),
-        status: status,
-        aba: aba
-      }),
+      body: JSON.stringify({ id: Number(id), status, aba }),
     });
-    console.log("Requisição enviada com sucesso!");
     return true;
   } catch (error) {
     console.error("Erro ao atualizar:", error);
