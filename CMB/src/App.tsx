@@ -103,8 +103,14 @@ export default function App() {
     });
   };
 
-  const pendingAppointments = useMemo(() => sortList(filterList(pendentes)), [pendentes, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]);
-  const historyAppointments = useMemo(() => sortList(filterList(historico)), [historico, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]);
+  const pendingAppointments = useMemo(
+    () => sortList(filterList(pendentes)),
+    [pendentes, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]
+  );
+  const historyAppointments = useMemo(
+    () => sortList(filterList(historico)),
+    [historico, searchTerm, filterMedico, filterEspecialidade, filterConvenio, sortConfig]
+  );
 
   if (!autenticado) return <Login onLogin={() => setAutenticado(true)} />;
 
@@ -169,8 +175,28 @@ export default function App() {
             <TabsTrigger value="pending" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Pendentes<Badge variant="secondary" className="ml-2 bg-red-100 text-red-700">{pendingAppointments.length}</Badge></TabsTrigger>
             <TabsTrigger value="history" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm transition-all py-2.5">Histórico<Badge variant="secondary" className="ml-2 bg-slate-100 text-slate-600">{historyAppointments.length}</Badge></TabsTrigger>
           </TabsList>
-          <TabsContent value="pending" className="mt-0"><AppointmentList appointments={pendingAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="Nenhum agendamento pendente." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} /></TabsContent>
-          <TabsContent value="history" className="mt-0"><AppointmentList appointments={historyAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="O histórico está vazio." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} /></TabsContent>
+          <TabsContent value="pending" className="mt-0">
+            <AppointmentList
+              appointments={pendingAppointments}
+              loading={loading}
+              onToggle={handleToggleConferido}
+              emptyMessage="Nenhum agendamento pendente."
+              viewMode={viewMode}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+            />
+          </TabsContent>
+          <TabsContent value="history" className="mt-0">
+            <AppointmentList
+              appointments={historyAppointments}
+              loading={loading}
+              onToggle={handleToggleConferido}
+              emptyMessage="O histórico está vazio."
+              viewMode={viewMode}
+              sortConfig={sortConfig}
+              onSort={handleSort}
+            />
+          </TabsContent>
         </Tabs>
       </main>
     </div>
@@ -191,15 +217,46 @@ const PAGE_SIZE = 50;
 
 function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMode, sortConfig, onSort }: ListProps) {
   const [page, setPage] = useState(1);
+
+  // FIX: Reset page to 1 whenever the appointments list changes (e.g. tab switch, filter change)
+  // This prevents trying to render hundreds of items at once when switching tabs
+  useEffect(() => {
+    setPage(1);
+  }, [appointments]);
+
   const paginated = appointments.slice(0, page * PAGE_SIZE);
   const hasMore = paginated.length < appointments.length;
 
-  if (loading) return <div className="space-y-4">{[1,2,3,4].map(i => <Card key={i} className="border-none shadow-sm"><CardContent className="p-4 flex items-center justify-between"><div className="space-y-2 flex-1"><Skeleton className="h-5 w-1/3" /><Skeleton className="h-4 w-1/2" /></div><Skeleton className="h-6 w-6 rounded" /></CardContent></Card>)}</div>;
-  if (appointments.length === 0) return <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300"><p className="text-slate-400 font-medium">{emptyMessage}</p></div>;
+  // FIX: Disable animations when list is large to prevent UI freeze
+  const useAnimation = paginated.length <= 50;
+
+  if (loading) return (
+    <div className="space-y-4">
+      {[1,2,3,4].map(i => (
+        <Card key={i} className="border-none shadow-sm">
+          <CardContent className="p-4 flex items-center justify-between">
+            <div className="space-y-2 flex-1">
+              <Skeleton className="h-5 w-1/3" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+            <Skeleton className="h-6 w-6 rounded" />
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  if (appointments.length === 0) return (
+    <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
+      <p className="text-slate-400 font-medium">{emptyMessage}</p>
+    </div>
+  );
 
   const SortIcon = ({ column }: { column: keyof Appointment | "data" }) => {
     if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30 text-slate-500" />;
-    return sortConfig.direction === "asc" ? <ArrowUp className="w-3 h-3 ml-1 text-slate-500" /> : <ArrowDown className="w-3 h-3 ml-1 text-slate-500" />;
+    return sortConfig.direction === "asc"
+      ? <ArrowUp className="w-3 h-3 ml-1 text-slate-500" />
+      : <ArrowDown className="w-3 h-3 ml-1 text-slate-500" />;
   };
 
   if (viewMode === "list") {
@@ -241,7 +298,11 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                   <td className={`px-3 py-2.5 text-xs font-medium ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.plano?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.plano}</td>
                   <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</td>
                   <td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${app.retorno === 'A realizar' ? 'text-red-600' : app.retorno === '≤ 15 dias' ? 'text-green-600' : app.retorno === '≤ 30 dias' ? 'text-yellow-600' : app.retorno === 'Fora' ? 'text-red-800' : 'text-slate-400'}`}>{app.retorno || "-"}</td>
-                  <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" /></div></td>
+                  <td className="px-3 py-2.5 text-sm text-center">
+                    <div className="flex justify-center">
+                      <Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" />
+                    </div>
+                  </td>
                 </tr>
               );
             })}
@@ -258,40 +319,38 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
     );
   }
 
+  // Card view
+  // FIX: Skip AnimatePresence/motion entirely when list is large to avoid freeze
+  if (!useAnimation) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+        {paginated.map((app, index) => (
+          <AppointmentCard key={`${app.id}-${index}`} app={app} onToggle={onToggle} />
+        ))}
+        {hasMore && (
+          <div className="flex justify-center py-4 col-span-full">
+            <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} className="text-slate-600 hover:bg-slate-50">
+              Carregar mais ({appointments.length - paginated.length} restantes)
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
       <AnimatePresence mode="popLayout">
         {paginated.map((app, index) => (
-          <motion.div key={`${app.id}-${index}`} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
-            <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR") ? "bg-red-100" : app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular" ? "bg-green-100" : ""}`}>
-              <CardContent className="p-0 flex flex-1 items-stretch">
-                <div className={`w-1.5 shrink-0 ${app.conferido ? 'bg-slate-300' : 'bg-red-600'}`} />
-                <div className="p-5 flex-1 flex flex-col gap-4">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-slate-800 text-base leading-tight group-hover:text-red-700 transition-colors line-clamp-2">{app.nome}</h3>
-                      <Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-5 w-5 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 transition-all shrink-0 mt-0.5" />
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="flex items-center gap-1 font-bold text-red-600 bg-red-50 px-2 py-1 rounded text-xs"><Clock className="w-3.5 h-3.5" />{app.horario}</span>
-                      <span className="flex items-center gap-1 text-slate-500 text-xs font-medium bg-slate-100 px-2 py-1 rounded"><Calendar className="w-3.5 h-3.5" />{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</span>
-                    </div>
-                    <div className="space-y-2.5">
-                      <div className="flex items-start gap-2 text-slate-600 text-xs"><Stethoscope className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><div className="flex flex-col"><span className="font-bold text-slate-700">{app.medico}</span><span className="text-slate-500">{app.especialidade}</span></div></div>
-                      <div className="flex items-center gap-2 text-slate-600 text-xs"><CreditCard className="w-4 h-4 text-slate-400 shrink-0" /><span className="truncate font-medium">{app.convenio} {app.plano && <span className={`font-normal ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600 font-medium' : 'text-slate-400'}`}>{app.plano?.toLowerCase() === 'particular' && ' ⭐'}({app.plano})</span>}</span></div>
-                      <div className="flex items-center gap-2 text-slate-600 text-xs"><User className="w-4 h-4 text-slate-400 shrink-0" /><span className="font-medium">{app.telefone}</span></div>
-                    </div>
-                  </div>
-                  <div className="space-y-2 pt-3 border-t border-slate-100">
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">CPF: {app.cpf}</span>
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">Nasc: {app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}</span>
-                    </div>
-                    <div className="flex items-center justify-between"><span className="text-[10px] text-slate-400 font-medium">Agendado: {app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</span></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+          <motion.div
+            key={`${app.id}-${index}`}
+            layout
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+          >
+            <AppointmentCard app={app} onToggle={onToggle} />
           </motion.div>
         ))}
       </AnimatePresence>
@@ -303,5 +362,69 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
         </div>
       )}
     </div>
+  );
+}
+
+// Extracted card component to avoid re-renders
+function AppointmentCard({ app, onToggle }: { app: Appointment; onToggle: (id: string, status: boolean) => void }) {
+  const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
+  const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
+
+  return (
+    <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${isRemarcar ? "bg-red-100" : isParticular ? "bg-green-100" : ""}`}>
+      <CardContent className="p-0 flex flex-1 items-stretch">
+        <div className={`w-1.5 shrink-0 ${app.conferido ? 'bg-slate-300' : 'bg-red-600'}`} />
+        <div className="p-5 flex-1 flex flex-col gap-4">
+          <div className="space-y-4">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-bold text-slate-800 text-base leading-tight group-hover:text-red-700 transition-colors line-clamp-2">{app.nome}</h3>
+              <Checkbox
+                checked={app.conferido}
+                onCheckedChange={() => onToggle(app.id, app.conferido)}
+                className="h-5 w-5 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 transition-all shrink-0 mt-0.5"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="flex items-center gap-1 font-bold text-red-600 bg-red-50 px-2 py-1 rounded text-xs"><Clock className="w-3.5 h-3.5" />{app.horario}</span>
+              <span className="flex items-center gap-1 text-slate-500 text-xs font-medium bg-slate-100 px-2 py-1 rounded"><Calendar className="w-3.5 h-3.5" />{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</span>
+            </div>
+            <div className="space-y-2.5">
+              <div className="flex items-start gap-2 text-slate-600 text-xs">
+                <Stethoscope className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
+                <div className="flex flex-col">
+                  <span className="font-bold text-slate-700">{app.medico}</span>
+                  <span className="text-slate-500">{app.especialidade}</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600 text-xs">
+                <CreditCard className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="truncate font-medium">
+                  {app.convenio}{app.plano && (
+                    <span className={`font-normal ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600 font-medium' : 'text-slate-400'}`}>
+                      {app.plano?.toLowerCase() === 'particular' && ' ⭐'}({app.plano})
+                    </span>
+                  )}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 text-slate-600 text-xs">
+                <User className="w-4 h-4 text-slate-400 shrink-0" />
+                <span className="font-medium">{app.telefone}</span>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-2 pt-3 border-t border-slate-100">
+            <div className="flex flex-wrap gap-1.5">
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">CPF: {app.cpf}</span>
+              <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">Nasc: {app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-slate-400 font-medium">
+                Agendado: {app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}
+              </span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
