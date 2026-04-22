@@ -110,19 +110,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-10 shadow-md">
+      <header className="bg-white border-b-2 border-red-600 sticky top-0 z-10 shadow-sm">
         <div className="max-w-full mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-red-600 p-2 rounded-lg"><Calendar className="text-white w-6 h-6" /></div>
-            <h1 className="text-xl font-bold tracking-tight text-white">Agendamentos</h1>
+            <h1 className="text-xl font-bold tracking-tight text-slate-800">Agendamentos</h1>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center bg-slate-800 p-1 rounded-lg">
-              <Button variant="ghost" size="sm" onClick={() => setViewMode("card")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "card" ? "bg-slate-700 shadow-sm text-white" : "text-slate-400 hover:text-white"}`}><LayoutGrid className="w-4 h-4 mr-2" />Cards</Button>
-              <Button variant="ghost" size="sm" onClick={() => setViewMode("list")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "list" ? "bg-slate-700 shadow-sm text-white" : "text-slate-400 hover:text-white"}`}><List className="w-4 h-4 mr-2" />Lista</Button>
+            <div className="flex items-center bg-slate-100 p-1 rounded-lg">
+              <Button variant="ghost" size="sm" onClick={() => setViewMode("card")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "card" ? "bg-white shadow-sm text-red-600" : "text-slate-500"}`}><LayoutGrid className="w-4 h-4 mr-2" />Cards</Button>
+              <Button variant="ghost" size="sm" onClick={() => setViewMode("list")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm text-red-600" : "text-slate-500"}`}><List className="w-4 h-4 mr-2" />Lista</Button>
             </div>
             <div className="flex items-center gap-2">
-              {isRefreshing && <RefreshCcw className="w-4 h-4 text-red-400 animate-spin" />}
+              {isRefreshing && <RefreshCcw className="w-4 h-4 text-red-600 animate-spin" />}
               <span className="text-xs text-slate-400 font-medium uppercase tracking-wider hidden sm:inline">{isRefreshing ? "Atualizando..." : "Sincronizado"}</span>
             </div>
           </div>
@@ -187,7 +187,13 @@ interface ListProps {
   onSort: (key: keyof Appointment | "data") => void;
 }
 
+const PAGE_SIZE = 50;
+
 function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMode, sortConfig, onSort }: ListProps) {
+  const [page, setPage] = useState(1);
+  const paginated = appointments.slice(0, page * PAGE_SIZE);
+  const hasMore = paginated.length < appointments.length;
+
   if (loading) return <div className="space-y-4">{[1,2,3,4].map(i => <Card key={i} className="border-none shadow-sm"><CardContent className="p-4 flex items-center justify-between"><div className="space-y-2 flex-1"><Skeleton className="h-5 w-1/3" /><Skeleton className="h-4 w-1/2" /></div><Skeleton className="h-6 w-6 rounded" /></CardContent></Card>)}</div>;
   if (appointments.length === 0) return <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300"><p className="text-slate-400 font-medium">{emptyMessage}</p></div>;
 
@@ -218,7 +224,7 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100">
-            {appointments.map((app, index) => {
+            {paginated.map((app, index) => {
               const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
               const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
               return (
@@ -241,6 +247,13 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
             })}
           </tbody>
         </table>
+        {hasMore && (
+          <div className="flex justify-center py-4 border-t border-slate-100">
+            <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} className="text-slate-600 hover:bg-slate-50">
+              Carregar mais ({appointments.length - paginated.length} restantes)
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
@@ -248,7 +261,7 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
       <AnimatePresence mode="popLayout">
-        {appointments.map((app, index) => (
+        {paginated.map((app, index) => (
           <motion.div key={`${app.id}-${index}`} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
             <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR") ? "bg-red-100" : app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular" ? "bg-green-100" : ""}`}>
               <CardContent className="p-0 flex flex-1 items-stretch">
@@ -282,6 +295,13 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
           </motion.div>
         ))}
       </AnimatePresence>
+      {hasMore && (
+        <div className="flex justify-center py-4 col-span-full">
+          <Button variant="outline" size="sm" onClick={() => setPage(p => p + 1)} className="text-slate-600 hover:bg-slate-50">
+            Carregar mais ({appointments.length - paginated.length} restantes)
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
