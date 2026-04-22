@@ -110,19 +110,19 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
-      <header className="bg-white border-b-2 border-red-600 sticky top-0 z-10 shadow-sm">
+      <header className="bg-slate-900 border-b border-slate-800 sticky top-0 z-10 shadow-md">
         <div className="max-w-full mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-red-600 p-2 rounded-lg"><Calendar className="text-white w-6 h-6" /></div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-800">Agendamentos</h1>
+            <h1 className="text-xl font-bold tracking-tight text-white">Agendamentos</h1>
           </div>
           <div className="flex items-center gap-4">
-            <div className="flex items-center bg-slate-100 p-1 rounded-lg">
-              <Button variant="ghost" size="sm" onClick={() => setViewMode("card")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "card" ? "bg-white shadow-sm text-red-600" : "text-slate-500"}`}><LayoutGrid className="w-4 h-4 mr-2" />Cards</Button>
-              <Button variant="ghost" size="sm" onClick={() => setViewMode("list")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "list" ? "bg-white shadow-sm text-red-600" : "text-slate-500"}`}><List className="w-4 h-4 mr-2" />Lista</Button>
+            <div className="flex items-center bg-slate-800 p-1 rounded-lg">
+              <Button variant="ghost" size="sm" onClick={() => setViewMode("card")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "card" ? "bg-slate-700 shadow-sm text-white" : "text-slate-400 hover:text-white"}`}><LayoutGrid className="w-4 h-4 mr-2" />Cards</Button>
+              <Button variant="ghost" size="sm" onClick={() => setViewMode("list")} className={`px-3 py-1 h-8 rounded-md transition-all ${viewMode === "list" ? "bg-slate-700 shadow-sm text-white" : "text-slate-400 hover:text-white"}`}><List className="w-4 h-4 mr-2" />Lista</Button>
             </div>
             <div className="flex items-center gap-2">
-              {isRefreshing && <RefreshCcw className="w-4 h-4 text-red-600 animate-spin" />}
+              {isRefreshing && <RefreshCcw className="w-4 h-4 text-red-400 animate-spin" />}
               <span className="text-xs text-slate-400 font-medium uppercase tracking-wider hidden sm:inline">{isRefreshing ? "Atualizando..." : "Sincronizado"}</span>
             </div>
           </div>
@@ -192,51 +192,51 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
   if (appointments.length === 0) return <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-slate-300"><p className="text-slate-400 font-medium">{emptyMessage}</p></div>;
 
   const SortIcon = ({ column }: { column: keyof Appointment | "data" }) => {
-  if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30 text-slate-500" />;
-  return sortConfig.direction === "asc" ? <ArrowUp className="w-3 h-3 ml-1 text-slate-500" /> : <ArrowDown className="w-3 h-3 ml-1 text-slate-500" />;
-};
+    if (sortConfig?.key !== column) return <ArrowUpDown className="w-3 h-3 ml-1 opacity-30 text-slate-500" />;
+    return sortConfig.direction === "asc" ? <ArrowUp className="w-3 h-3 ml-1 text-slate-500" /> : <ArrowDown className="w-3 h-3 ml-1 text-slate-500" />;
+  };
 
   if (viewMode === "list") {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-x-auto">
         <table className="w-full text-left border-collapse table-auto">
           <thead>
-  <tr className="bg-slate-50 border-b border-slate-200">
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("data")}><div className="flex items-center">Data Agendada<SortIcon column="data" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("horario")}><div className="flex items-center">Horário<SortIcon column="horario" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("nome")}><div className="flex items-center">Nome<SortIcon column="nome" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("telefone")}><div className="flex items-center">Telefone<SortIcon column="telefone" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("cpf")}><div className="flex items-center">CPF<SortIcon column="cpf" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("dataNasc")}><div className="flex items-center">Data Nasc<SortIcon column="dataNasc" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("especialidade")}><div className="flex items-center">Especialidade<SortIcon column="especialidade" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("medico")}><div className="flex items-center">Médico<SortIcon column="medico" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("convenio")}><div className="flex items-center">Convênio<SortIcon column="convenio" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("plano")}><div className="flex items-center">Plano<SortIcon column="plano" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("diaQueAgendou")}><div className="flex items-center">Dia Agendou<SortIcon column="diaQueAgendou" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("retorno")}><div className="flex items-center">Retorno<SortIcon column="retorno" /></div></th>
-    <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">Conferido</th>
-  </tr>
-</thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("data")}><div className="flex items-center">Data Agendada<SortIcon column="data" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("horario")}><div className="flex items-center">Horário<SortIcon column="horario" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("nome")}><div className="flex items-center">Nome<SortIcon column="nome" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("telefone")}><div className="flex items-center">Telefone<SortIcon column="telefone" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("cpf")}><div className="flex items-center">CPF<SortIcon column="cpf" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("dataNasc")}><div className="flex items-center">Data Nasc<SortIcon column="dataNasc" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("especialidade")}><div className="flex items-center">Especialidade<SortIcon column="especialidade" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("medico")}><div className="flex items-center">Médico<SortIcon column="medico" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("convenio")}><div className="flex items-center">Convênio<SortIcon column="convenio" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider cursor-pointer hover:bg-slate-100" onClick={() => onSort("plano")}><div className="flex items-center">Plano<SortIcon column="plano" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("diaQueAgendou")}><div className="flex items-center">Dia Agendou<SortIcon column="diaQueAgendou" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap cursor-pointer hover:bg-slate-100" onClick={() => onSort("retorno")}><div className="flex items-center">Retorno<SortIcon column="retorno" /></div></th>
+              <th className="px-3 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-center">Conferido</th>
+            </tr>
+          </thead>
           <tbody className="divide-y divide-slate-100">
             {appointments.map((app, index) => {
               const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
               const isParticular = app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular";
               return (
-              <tr key={`${app.id}-${index}`} className={`transition-colors ${isRemarcar ? "bg-red-100 hover:bg-red-200" : isParticular ? "bg-green-100 hover:bg-green-200" : "hover:bg-slate-50/50"}`}>
-                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</td>
-                <td className="px-3 py-2.5 text-xs font-bold text-red-600 whitespace-nowrap">{app.horario || "-"}</td>
-                <td className="px-3 py-2.5 text-xs font-bold text-slate-800 min-w-[150px]">{app.nome}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.telefone}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.cpf}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600">{app.especialidade}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600">{app.medico}</td>
-                <td className={`px-3 py-2.5 text-xs font-medium ${app.convenio?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.convenio?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.convenio}</td>
-                <td className={`px-3 py-2.5 text-xs font-medium ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.plano?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.plano}</td>
-                <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</td>
-                <td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${app.retorno === 'A realizar' ? 'text-red-600' : app.retorno === '≤ 15 dias' ? 'text-green-600' : app.retorno === '≤ 30 dias' ? 'text-yellow-600' : app.retorno === 'Fora' ? 'text-red-800' : 'text-slate-400'}`}>{app.retorno || "-"}</td>
-                <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" /></div></td>
-              </tr>
+                <tr key={`${app.id}-${index}`} className={`transition-colors ${isRemarcar ? "bg-red-100 hover:bg-red-200" : isParticular ? "bg-green-100 hover:bg-green-200" : "hover:bg-slate-50/50"}`}>
+                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</td>
+                  <td className="px-3 py-2.5 text-xs font-bold text-red-600 whitespace-nowrap">{app.horario || "-"}</td>
+                  <td className="px-3 py-2.5 text-xs font-bold text-slate-800 min-w-[150px]">{app.nome}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.telefone}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.cpf}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataNasc ? format(parseISO(app.dataNasc), "dd/MM/yyyy") : "-"}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-600">{app.especialidade}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-600">{app.medico}</td>
+                  <td className={`px-3 py-2.5 text-xs font-medium ${app.convenio?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.convenio?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.convenio}</td>
+                  <td className={`px-3 py-2.5 text-xs font-medium ${app.plano?.toLowerCase() === 'particular' ? 'text-green-600' : 'text-slate-600'}`}>{app.plano?.toLowerCase() === 'particular' && <span className="mr-1">⭐</span>}{app.plano}</td>
+                  <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.diaQueAgendou ? format(parseISO(app.diaQueAgendou), "dd/MM/yyyy") : "-"}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</td>
+                  <td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${app.retorno === 'A realizar' ? 'text-red-600' : app.retorno === '≤ 15 dias' ? 'text-green-600' : app.retorno === '≤ 30 dias' ? 'text-yellow-600' : app.retorno === 'Fora' ? 'text-red-800' : 'text-slate-400'}`}>{app.retorno || "-"}</td>
+                  <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" /></div></td>
+                </tr>
               );
             })}
           </tbody>
