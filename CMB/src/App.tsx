@@ -216,7 +216,7 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
             {appointments.map((app, index) => {
               const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
               return (
-              <tr key={`${app.id}-${index}`} className={`transition-colors ${isRemarcar ? "bg-red-50 hover:bg-red-100" : "hover:bg-slate-50/50"}`}>
+              <tr key={`${app.id}-${index}`} className={`transition-colors ${isRemarcar ? "bg-red-100 hover:bg-red-200" : "hover:bg-slate-50/50"}`}>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</td>
                 <td className="px-3 py-2.5 text-xs font-bold text-blue-600 whitespace-nowrap">{app.horario || "-"}</td>
                 <td className="px-3 py-2.5 text-xs font-bold text-slate-800 min-w-[150px]">{app.nome}</td>
