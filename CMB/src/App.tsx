@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { Calendar, Clock, User, CreditCard, Stethoscope, RefreshCcw, LayoutGrid, List, Search, Filter, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 
 import Login from "./Login";
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import { ErrorBoundary } from "../components/ErrorBoundary";
 
 // ✅ CORREÇÃO 4 — Proteção contra datas inválidas
 function formatarDataSeguro(dataStr: string | undefined | null): string {
