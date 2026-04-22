@@ -14,7 +14,7 @@ import { Calendar, Clock, User, CreditCard, Stethoscope, RefreshCcw, LayoutGrid,
 import Login from "./Login";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 
-// ✅ CORREÇÃO 4 — Proteção contra datas inválidas
+// Proteção contra datas inválidas
 function formatarDataSeguro(dataStr: string | undefined | null): string {
   try {
     if (!dataStr || dataStr.trim() === "" || dataStr === "0001-01-01") return "-";
@@ -24,6 +24,11 @@ function formatarDataSeguro(dataStr: string | undefined | null): string {
   } catch {
     return "-";
   }
+}
+
+// Proteção contra valores não-string em todos os campos
+function str(val: unknown): string {
+  return String(val ?? "");
 }
 
 export default function App() {
@@ -102,7 +107,7 @@ export default function App() {
   }), [allAppointments]);
 
   const filterList = (list: Appointment[]) => list.filter(app => {
-    if (debouncedSearch && !app.nome.toLowerCase().includes(debouncedSearch.toLowerCase()) && !app.cpf.includes(debouncedSearch)) return false;
+    if (debouncedSearch && !str(app.nome).toLowerCase().includes(debouncedSearch.toLowerCase()) && !str(app.cpf).includes(debouncedSearch)) return false;
     if (filterMedico !== "all" && app.medico !== filterMedico) return false;
     if (filterEspecialidade !== "all" && app.especialidade !== filterEspecialidade) return false;
     if (filterConvenio !== "all" && app.convenio !== filterConvenio) return false;
@@ -113,8 +118,8 @@ export default function App() {
     if (!sortConfig) return list;
     return [...list].sort((a, b) => {
       const key = sortConfig.key === "data" ? "dataAgendada" : sortConfig.key as keyof Appointment;
-      const valA = String(a[key] || "").toLowerCase();
-      const valB = String(b[key] || "").toLowerCase();
+      const valA = str(a[key]).toLowerCase();
+      const valB = str(b[key]).toLowerCase();
       if (valA < valB) return sortConfig.direction === "asc" ? -1 : 1;
       if (valA > valB) return sortConfig.direction === "asc" ? 1 : -1;
       return 0;
@@ -196,7 +201,6 @@ export default function App() {
           <TabsContent value="pending" className="mt-0">
             <AppointmentList appointments={pendingAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="Nenhum agendamento pendente." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} />
           </TabsContent>
-          {/* ✅ CORREÇÃO 1 — ErrorBoundary no histórico */}
           <TabsContent value="history" className="mt-0">
             <ErrorBoundary>
               <AppointmentList appointments={historyAppointments} loading={loading} onToggle={handleToggleConferido} emptyMessage="O histórico está vazio." viewMode={viewMode} sortConfig={sortConfig} onSort={handleSort} />
@@ -221,7 +225,6 @@ interface ListProps {
 const ROW_HEIGHT = 37;
 const OVERSCAN = 15;
 
-// ✅ CORREÇÃO 5 — Larguras fixas sincronizadas entre header e corpo
 const COL_WIDTHS = [110, 75, 160, 105, 115, 105, 135, 145, 135, 115, 150, 95, 80];
 const Colgroup = () => (
   <colgroup>
@@ -239,11 +242,9 @@ function VirtualTable({ appointments, onToggle, sortConfig, onSort }: {
   const [scrollTop, setScrollTop] = useState(0);
   const [containerHeight, setContainerHeight] = useState(500);
 
-  // ✅ CORREÇÃO 3 — ResizeObserver para detectar altura real do container
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const h = entry.contentRect.height;
@@ -251,10 +252,8 @@ function VirtualTable({ appointments, onToggle, sortConfig, onSort }: {
       }
     });
     observer.observe(el);
-
     const handleScroll = () => setScrollTop(el.scrollTop);
     el.addEventListener("scroll", handleScroll, { passive: true });
-
     return () => {
       observer.disconnect();
       el.removeEventListener("scroll", handleScroll);
@@ -275,8 +274,6 @@ function VirtualTable({ appointments, onToggle, sortConfig, onSort }: {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col" style={{ height: "calc(100vh - 320px)", minHeight: 500 }}>
-
-      {/* ✅ CORREÇÃO 5 — Header com Colgroup sincronizado */}
       <div className="overflow-x-hidden shrink-0 border-b border-slate-200">
         <table className="w-full text-left border-collapse" style={{ tableLayout: "fixed" }}>
           <Colgroup />
@@ -299,19 +296,18 @@ function VirtualTable({ appointments, onToggle, sortConfig, onSort }: {
           </thead>
         </table>
       </div>
-
-      {/* ✅ CORREÇÃO 3 — Corpo com minHeight e ResizeObserver */}
       <div ref={containerRef} className="overflow-auto flex-1" style={{ minHeight: 500 }}>
         <div style={{ height: totalHeight, position: "relative" }}>
           <table className="w-full text-left border-collapse" style={{ tableLayout: "fixed", position: "absolute", top: offsetY, width: "100%" }}>
             <Colgroup />
             <tbody className="divide-y divide-slate-100">
               {visibleItems.map((app) => {
-                const isRemarcar = String(app.convenio ?? "").includes("REMARCAR / CANCELAR") || String(app.plano ?? "").includes("REMARCAR / CANCELAR");
-const isParticular = String(app.convenio ?? "").toLowerCase() === "particular" || String(app.plano ?? "").toLowerCase() === "particular";
+                const convenio = str(app.convenio).toLowerCase();
+                const plano = str(app.plano).toLowerCase();
+                const isRemarcar = convenio.includes("remarcar / cancelar") || plano.includes("remarcar / cancelar");
+                const isParticular = convenio === "particular" || plano === "particular";
                 return (
                   <tr key={app.id} style={{ height: ROW_HEIGHT }} className={`transition-colors ${isRemarcar ? "bg-red-100 hover:bg-red-200" : isParticular ? "bg-green-100 hover:bg-green-200" : "hover:bg-slate-50/50"}`}>
-                    {/* ✅ CORREÇÃO 4 — formatarDataSeguro em todas as datas */}
                     <td className="px-3 py-2.5 text-xs text-slate-600 truncate">{formatarDataSeguro(app.dataAgendada)}</td>
                     <td className="px-3 py-2.5 text-xs font-bold text-red-600 truncate">{app.horario || "-"}</td>
                     <td className="px-3 py-2.5 text-xs font-bold text-slate-800 truncate">{app.nome}</td>
@@ -320,8 +316,8 @@ const isParticular = String(app.convenio ?? "").toLowerCase() === "particular" |
                     <td className="px-3 py-2.5 text-xs text-slate-600 truncate">{formatarDataSeguro(app.dataNasc)}</td>
                     <td className="px-3 py-2.5 text-xs text-slate-600 truncate">{app.especialidade}</td>
                     <td className="px-3 py-2.5 text-xs text-slate-600 truncate">{app.medico}</td>
-                    <td className={`px-3 py-2.5 text-xs font-medium truncate ${app.convenio?.toLowerCase() === "particular" ? "text-green-600" : "text-slate-600"}`}>{app.convenio?.toLowerCase() === "particular" && <span className="mr-1">⭐</span>}{app.convenio}</td>
-                    <td className={`px-3 py-2.5 text-xs font-medium truncate ${app.plano?.toLowerCase() === "particular" ? "text-green-600" : "text-slate-600"}`}>{app.plano?.toLowerCase() === "particular" && <span className="mr-1">⭐</span>}{app.plano}</td>
+                    <td className={`px-3 py-2.5 text-xs font-medium truncate ${convenio === "particular" ? "text-green-600" : "text-slate-600"}`}>{convenio === "particular" && <span className="mr-1">⭐</span>}{app.convenio}</td>
+                    <td className={`px-3 py-2.5 text-xs font-medium truncate ${plano === "particular" ? "text-green-600" : "text-slate-600"}`}>{plano === "particular" && <span className="mr-1">⭐</span>}{app.plano}</td>
                     <td className="px-3 py-2.5 text-xs text-slate-600 truncate">{formatarDataSeguro(app.diaQueAgendou)}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</td>
                     <td className={`px-3 py-2.5 text-xs font-medium truncate ${app.retorno === "A realizar" ? "text-red-600" : app.retorno === "≤ 15 dias" ? "text-green-600" : app.retorno === "≤ 30 dias" ? "text-yellow-600" : app.retorno === "Fora" ? "text-red-800" : "text-slate-400"}`}>{app.retorno || "-"}</td>
                     <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600" /></div></td>
@@ -332,7 +328,6 @@ const isParticular = String(app.convenio ?? "").toLowerCase() === "particular" |
           </table>
         </div>
       </div>
-
       <div className="px-4 py-2 text-xs text-slate-400 border-t border-slate-100 shrink-0">
         {appointments.length} registros
       </div>
@@ -364,16 +359,61 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
     return <VirtualTable appointments={appointments} onToggle={onToggle} sortConfig={sortConfig} onSort={onSort} />;
   }
 
-  // ✅ CORREÇÃO 2 — Sem animação para listas grandes, remove o slice(0,100)
   const usarAnimacao = appointments.length <= 150;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
       {usarAnimacao ? (
         <AnimatePresence mode="popLayout">
-          {appointments.map((app, index) => (
-            <motion.div key={`${app.id}-${index}`} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
-              <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR") ? "bg-red-100" : app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular" ? "bg-green-100" : ""}`}>
+          {appointments.map((app, index) => {
+            const convenio = str(app.convenio).toLowerCase();
+            const plano = str(app.plano).toLowerCase();
+            const isRemarcar = convenio.includes("remarcar / cancelar") || plano.includes("remarcar / cancelar");
+            const isParticular = convenio === "particular" || plano === "particular";
+            return (
+              <motion.div key={`${app.id}-${index}`} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }}>
+                <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${isRemarcar ? "bg-red-100" : isParticular ? "bg-green-100" : ""}`}>
+                  <CardContent className="p-0 flex flex-1 items-stretch">
+                    <div className={`w-1.5 shrink-0 ${app.conferido ? "bg-slate-300" : "bg-red-600"}`} />
+                    <div className="p-5 flex-1 flex flex-col gap-4">
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-bold text-slate-800 text-base leading-tight group-hover:text-red-700 transition-colors line-clamp-2">{app.nome}</h3>
+                          <Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-5 w-5 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 transition-all shrink-0 mt-0.5" />
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="flex items-center gap-1 font-bold text-red-600 bg-red-50 px-2 py-1 rounded text-xs"><Clock className="w-3.5 h-3.5" />{app.horario}</span>
+                          <span className="flex items-center gap-1 text-slate-500 text-xs font-medium bg-slate-100 px-2 py-1 rounded"><Calendar className="w-3.5 h-3.5" />{formatarDataSeguro(app.dataAgendada)}</span>
+                        </div>
+                        <div className="space-y-2.5">
+                          <div className="flex items-start gap-2 text-slate-600 text-xs"><Stethoscope className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><div className="flex flex-col"><span className="font-bold text-slate-700">{app.medico}</span><span className="text-slate-500">{app.especialidade}</span></div></div>
+                          <div className="flex items-center gap-2 text-slate-600 text-xs"><CreditCard className="w-4 h-4 text-slate-400 shrink-0" /><span className="truncate font-medium">{app.convenio} {app.plano && <span className={`font-normal ${plano === "particular" ? "text-green-600 font-medium" : "text-slate-400"}`}>{plano === "particular" && " ⭐"}({app.plano})</span>}</span></div>
+                          <div className="flex items-center gap-2 text-slate-600 text-xs"><User className="w-4 h-4 text-slate-400 shrink-0" /><span className="font-medium">{app.telefone}</span></div>
+                        </div>
+                      </div>
+                      <div className="space-y-2 pt-3 border-t border-slate-100">
+                        <div className="flex flex-wrap gap-1.5">
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">CPF: {app.cpf}</span>
+                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">Nasc: {formatarDataSeguro(app.dataNasc)}</span>
+                        </div>
+                        <div className="flex items-center justify-between"><span className="text-[10px] text-slate-400 font-medium">Agendado: {formatarDataSeguro(app.diaQueAgendou)}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</span></div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      ) : (
+        appointments.map((app, index) => {
+          const convenio = str(app.convenio).toLowerCase();
+          const plano = str(app.plano).toLowerCase();
+          const isRemarcar = convenio.includes("remarcar / cancelar") || plano.includes("remarcar / cancelar");
+          const isParticular = convenio === "particular" || plano === "particular";
+          return (
+            <div key={`${app.id}-${index}`}>
+              <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${isRemarcar ? "bg-red-100" : isParticular ? "bg-green-100" : ""}`}>
                 <CardContent className="p-0 flex flex-1 items-stretch">
                   <div className={`w-1.5 shrink-0 ${app.conferido ? "bg-slate-300" : "bg-red-600"}`} />
                   <div className="p-5 flex-1 flex flex-col gap-4">
@@ -388,7 +428,7 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                       </div>
                       <div className="space-y-2.5">
                         <div className="flex items-start gap-2 text-slate-600 text-xs"><Stethoscope className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><div className="flex flex-col"><span className="font-bold text-slate-700">{app.medico}</span><span className="text-slate-500">{app.especialidade}</span></div></div>
-                        <div className="flex items-center gap-2 text-slate-600 text-xs"><CreditCard className="w-4 h-4 text-slate-400 shrink-0" /><span className="truncate font-medium">{app.convenio} {app.plano && <span className={`font-normal ${app.plano?.toLowerCase() === "particular" ? "text-green-600 font-medium" : "text-slate-400"}`}>{app.plano?.toLowerCase() === "particular" && " ⭐"}({app.plano})</span>}</span></div>
+                        <div className="flex items-center gap-2 text-slate-600 text-xs"><CreditCard className="w-4 h-4 text-slate-400 shrink-0" /><span className="truncate font-medium">{app.convenio} {app.plano && <span className={`font-normal ${plano === "particular" ? "text-green-600 font-medium" : "text-slate-400"}`}>{plano === "particular" && " ⭐"}({app.plano})</span>}</span></div>
                         <div className="flex items-center gap-2 text-slate-600 text-xs"><User className="w-4 h-4 text-slate-400 shrink-0" /><span className="font-medium">{app.telefone}</span></div>
                       </div>
                     </div>
@@ -402,43 +442,9 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                   </div>
                 </CardContent>
               </Card>
-            </motion.div>
-          ))}
-        </AnimatePresence>
-      ) : (
-        appointments.map((app, index) => (
-          <div key={`${app.id}-${index}`}>
-            <Card className={`border-none shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden group flex flex-col ${app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR") ? "bg-red-100" : app.convenio?.toLowerCase() === "particular" || app.plano?.toLowerCase() === "particular" ? "bg-green-100" : ""}`}>
-              <CardContent className="p-0 flex flex-1 items-stretch">
-                <div className={`w-1.5 shrink-0 ${app.conferido ? "bg-slate-300" : "bg-red-600"}`} />
-                <div className="p-5 flex-1 flex flex-col gap-4">
-                  <div className="space-y-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-slate-800 text-base leading-tight group-hover:text-red-700 transition-colors line-clamp-2">{app.nome}</h3>
-                      <Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-5 w-5 rounded border-slate-300 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600 transition-all shrink-0 mt-0.5" />
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="flex items-center gap-1 font-bold text-red-600 bg-red-50 px-2 py-1 rounded text-xs"><Clock className="w-3.5 h-3.5" />{app.horario}</span>
-                      <span className="flex items-center gap-1 text-slate-500 text-xs font-medium bg-slate-100 px-2 py-1 rounded"><Calendar className="w-3.5 h-3.5" />{formatarDataSeguro(app.dataAgendada)}</span>
-                    </div>
-                    <div className="space-y-2.5">
-                      <div className="flex items-start gap-2 text-slate-600 text-xs"><Stethoscope className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" /><div className="flex flex-col"><span className="font-bold text-slate-700">{app.medico}</span><span className="text-slate-500">{app.especialidade}</span></div></div>
-                      <div className="flex items-center gap-2 text-slate-600 text-xs"><CreditCard className="w-4 h-4 text-slate-400 shrink-0" /><span className="truncate font-medium">{app.convenio} {app.plano && <span className={`font-normal ${app.plano?.toLowerCase() === "particular" ? "text-green-600 font-medium" : "text-slate-400"}`}>{app.plano?.toLowerCase() === "particular" && " ⭐"}({app.plano})</span>}</span></div>
-                      <div className="flex items-center gap-2 text-slate-600 text-xs"><User className="w-4 h-4 text-slate-400 shrink-0" /><span className="font-medium">{app.telefone}</span></div>
-                    </div>
-                  </div>
-                  <div className="space-y-2 pt-3 border-t border-slate-100">
-                    <div className="flex flex-wrap gap-1.5">
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">CPF: {app.cpf}</span>
-                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded">Nasc: {formatarDataSeguro(app.dataNasc)}</span>
-                    </div>
-                    <div className="flex items-center justify-between"><span className="text-[10px] text-slate-400 font-medium">Agendado: {formatarDataSeguro(app.diaQueAgendou)}{app.horaAgendou ? ` às ${app.horaAgendou}` : ""}</span></div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        ))
+            </div>
+          );
+        })
       )}
     </div>
   );
