@@ -213,8 +213,10 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
   </tr>
 </thead>
           <tbody className="divide-y divide-slate-100">
-            {appointments.map((app, index) => (
-              <tr key={`${app.id}-${index}`} className="hover:bg-slate-50/50 transition-colors">
+            {appointments.map((app, index) => {
+              const isRemarcar = app.convenio?.includes("REMARCAR / CANCELAR") || app.plano?.includes("REMARCAR / CANCELAR");
+              return (
+              <tr key={`${app.id}-${index}`} className={`transition-colors ${isRemarcar ? "bg-red-50 hover:bg-red-100" : "hover:bg-slate-50/50"}`}>
                 <td className="px-3 py-2.5 text-xs text-slate-600 whitespace-nowrap">{app.dataAgendada ? format(parseISO(app.dataAgendada), "dd/MM/yyyy") : "-"}</td>
                 <td className="px-3 py-2.5 text-xs font-bold text-blue-600 whitespace-nowrap">{app.horario || "-"}</td>
                 <td className="px-3 py-2.5 text-xs font-bold text-slate-800 min-w-[150px]">{app.nome}</td>
@@ -229,7 +231,8 @@ function AppointmentList({ appointments, loading, onToggle, emptyMessage, viewMo
                 <td className={`px-3 py-2.5 text-xs font-medium whitespace-nowrap ${app.retorno === 'A realizar' ? 'text-blue-600 bg-blue-50' : app.retorno === '≤ 15 dias' ? 'text-green-600 bg-green-50' : app.retorno === '≤ 30 dias' ? 'text-yellow-600 bg-yellow-50' : app.retorno === 'Fora' ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}>{app.retorno || "-"}</td>
                 <td className="px-3 py-2.5 text-sm text-center"><div className="flex justify-center"><Checkbox checked={app.conferido} onCheckedChange={() => onToggle(app.id, app.conferido)} className="h-4 w-4 rounded border-slate-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" /></div></td>
               </tr>
-            ))}
+              );
+            })}
           </tbody>
         </table>
       </div>
